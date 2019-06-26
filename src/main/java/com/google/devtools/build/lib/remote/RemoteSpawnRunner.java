@@ -141,6 +141,25 @@ class RemoteSpawnRunner implements SpawnRunner {
     this.binTools = binTools;
   }
 
+  RemoteSpawnRunner(
+      Path execRoot,
+      RemoteOptions remoteOptions,
+      ExecutionOptions executionOptions,
+      AtomicReference<SpawnRunner> fallbackRunner,
+      boolean verboseFailures,
+      @Nullable Reporter cmdlineReporter,
+      String buildRequestId,
+      String commandId,
+      GrpcRemoteCache remoteCache,
+      @Nullable GrpcRemoteExecutor remoteExecutor,
+      @Nullable RemoteRetrier retrier,
+      DigestUtil digestUtil,
+      Path logDir) {
+    this(execRoot, remoteOptions, executionOptions, fallbackRunner, verboseFailures,
+        cmdlineReporter, buildRequestId, commandId, remoteCache, remoteExecutor, retrier,
+        digestUtil, logDir, null);
+  }
+
   @Override
   public String getName() {
     return "remote";
