@@ -90,12 +90,12 @@ public final class XcodeLocalEnvProvider implements LocalEnvProvider {
     // TODO(bazel-team): Bazel's view of the xcode version and developer dir should be explicitly
     // set for build hermeticity.
     String developerDir = "";
-    if (containsXcodeVersion) {
+    if (containsXcodeVersion && !env.containsKey("DEVELOPER_DIR")) {
       String version = env.get(AppleConfiguration.XCODE_VERSION_ENV_NAME);
       developerDir = getDeveloperDir(binTools, DottedVersion.fromString(version));
       newEnvBuilder.put("DEVELOPER_DIR", developerDir);
     }
-    if (containsAppleSdkVersion) {
+    if (containsAppleSdkVersion && !env.containsKey("SDKROOT")) {
       // The Apple platform is needed to select the appropriate SDK.
       if (!env.containsKey(AppleConfiguration.APPLE_SDK_PLATFORM_ENV_NAME)) {
         throw new IOException("Could not resolve apple platform for determining SDK");

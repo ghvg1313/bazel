@@ -115,7 +115,8 @@ final class RemoteActionContextProvider extends ActionContextProvider {
               executor,
               retrier,
               digestUtil,
-              logDir);
+              logDir,
+              env.getBlazeWorkspace().getBinTools());
       return ImmutableList.of(new RemoteSpawnStrategy(env.getExecRoot(), spawnRunner));
     }
   }
