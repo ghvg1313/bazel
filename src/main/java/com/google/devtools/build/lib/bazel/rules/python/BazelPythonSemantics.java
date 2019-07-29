@@ -140,7 +140,8 @@ public class BazelPythonSemantics implements PythonSemantics {
     BazelPythonConfiguration config = ruleContext.getFragment(BazelPythonConfiguration.class);
     String pythonBinary = getPythonBinary(ruleContext, common, config);
 
-    if (!ruleContext.getFragment(PythonConfiguration.class).buildPythonZip()) {
+    if (!ruleContext.getFragment(PythonConfiguration.class).buildPythonZip() &&
+        !ruleContext.getFeatures().contains(PyCommon.PYTHON_BUILD_EXECUTABLE_ZIP)) {
       Artifact stubOutput = executable;
       if (OS.getCurrent() == OS.WINDOWS) {
         // On Windows, use a Windows native binary to launch the python launcher script (stub file).
@@ -248,7 +249,8 @@ public class BazelPythonSemantics implements PythonSemantics {
   @Override
   public void postInitExecutable(
       RuleContext ruleContext, RunfilesSupport runfilesSupport, PyCommon common) {
-    if (ruleContext.getFragment(PythonConfiguration.class).buildPythonZip()) {
+    if (ruleContext.getFragment(PythonConfiguration.class).buildPythonZip() ||
+        ruleContext.getFeatures().contains(PyCommon.PYTHON_BUILD_EXECUTABLE_ZIP)) {
       FilesToRunProvider zipper = ruleContext.getExecutablePrerequisite("$zipper", Mode.HOST);
       Artifact executable = common.getExecutable();
       if (!ruleContext.hasErrors()) {
