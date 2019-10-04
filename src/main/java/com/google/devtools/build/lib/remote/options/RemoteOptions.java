@@ -94,8 +94,7 @@ public final class RemoteOptions extends OptionsBase {
       help =
           "Specify a HTTP header that will be included in requests: --remote_header=Name=Value. "
               + "Multiple headers can be passed by specifying the flag multiple times. Multiple "
-              + "values for the same name will be converted to a comma-separated list. This flag"
-              + "is currently only implemented for the HTTP protocol.",
+              + "values for the same name will be converted to a comma-separated list.",
       allowMultiple = true)
   public List<Entry<String, String>> remoteHeaders;
 
