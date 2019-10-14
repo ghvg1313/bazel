@@ -185,8 +185,20 @@ public final class RemoteModule extends BlazeModule {
         env.getOutputBase().getRelative(env.getRuntime().getProductName() + "-remote-logs");
     cleanAndCreateRemoteLogsDir(logDir);
 
+    if (Strings.isNullOrEmpty(remoteOptions.remoteCache) && remoteOptions.remoteCacheHeaders.size() > 0){
+      throw new AbruptExitException(
+          "--remote_cache_header can only be used if --remote_cache is set.",
+          ExitCode.COMMAND_LINE_ERROR);
+    }
+    if (Strings.isNullOrEmpty(remoteOptions.remoteExecutor) && remoteOptions.remoteCacheHeaders.size() > 0){
+      throw new AbruptExitException(
+          "--remote_exec_header can only be used if --remote_executor is set.",
+          ExitCode.COMMAND_LINE_ERROR);
+    }
     try {
       List<ClientInterceptor> interceptors = new ArrayList<>();
+      List<ClientInterceptor> execInterceptors = interceptors;
+      List<ClientInterceptor> cacheInterceptors = interceptors;
       if (remoteOptions.experimentalRemoteGrpcLog != null) {
         rpcLogFile =
             new AsynchronousFileOutputStream(
@@ -195,6 +207,14 @@ public final class RemoteModule extends BlazeModule {
       }
       if (remoteOptions.remoteHeaders.size() > 0){
         interceptors.add(createExtraHeadersClientInterceptor(remoteOptions.remoteHeaders));
+      }
+      if (remoteOptions.remoteExecHeaders.size() > 0) {
+        execInterceptors = new ArrayList<>(interceptors);
+        execInterceptors.add(createExtraHeadersClientInterceptor(remoteOptions.remoteExecHeaders));
+      }
+      if (remoteOptions.remoteCacheHeaders.size() > 0) {
+        cacheInterceptors = new ArrayList<>(interceptors);
+        cacheInterceptors.add(createExtraHeadersClientInterceptor(remoteOptions.remoteCacheHeaders));
       }
 
       ReferenceCountedChannel cacheChannel = null;
@@ -207,7 +227,7 @@ public final class RemoteModule extends BlazeModule {
                 GoogleAuthUtils.newChannel(
                     remoteOptions.remoteExecutor,
                     authAndTlsOptions,
-                    interceptors.toArray(new ClientInterceptor[0])));
+                    execInterceptors.toArray(new ClientInterceptor[0])));
       }
       RemoteRetrier executeRetrier = null;
       AbstractRemoteActionCache cache = null;
@@ -219,13 +239,14 @@ public final class RemoteModule extends BlazeModule {
                   retryScheduler,
                   Retrier.ALLOW_ALL_CALLS);
         if (!Strings.isNullOrEmpty(remoteOptions.remoteCache)
-            && !remoteOptions.remoteCache.equals(remoteOptions.remoteExecutor)) {
+            && (!remoteOptions.remoteCache.equals(remoteOptions.remoteExecutor)
+                || execInterceptors != cacheInterceptors)) {
           cacheChannel =
               new ReferenceCountedChannel(
                   GoogleAuthUtils.newChannel(
                       remoteOptions.remoteCache,
                       authAndTlsOptions,
-                      interceptors.toArray(new ClientInterceptor[0])));
+                      cacheInterceptors.toArray(new ClientInterceptor[0])));
         } else {  // Assume --remote_cache is equal to --remote_executor by default.
           cacheChannel = execChannel.retain(); // execChannel is guaranteed to be defined here.
         }
