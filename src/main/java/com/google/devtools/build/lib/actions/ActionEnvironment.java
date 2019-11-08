@@ -233,7 +233,11 @@ public final class ActionEnvironment {
   }
 
   public void addTo(Fingerprint f) {
-    f.addStringMap(fixedEnv.toMap());
-    f.addStrings(inheritedEnv);
+    // TODO - Add an option to decide whether to include the env or not
+    boolean shouldIncludeEnv = false;
+    if (shouldIncludeEnv) {
+      f.addStringMap(fixedEnv.toMap());
+      f.addStrings(inheritedEnv);
+    }
   }
 }
